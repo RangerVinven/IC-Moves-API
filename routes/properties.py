@@ -11,7 +11,7 @@ async def get_properties():
     cursor.execute("SELECT id, name, bedrooms, showers, noise_level, rent, folder FROM Properties;")
     return cursor.fetchall()
 
-@router.get("/{property_id}/saved")
+@router.get("/{property_id}/is_saved")
 async def is_property_saved(property_id: str, request: Request):
     session_token = get_session_token_from_request(request)
 
