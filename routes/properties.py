@@ -30,7 +30,7 @@ async def is_property_saved(property_id: str, request: Request):
         return True
 
 @router.get("/{property_id}")
-async def get_property(property_id: int):
+async def get_property(property_id: str):
     # Gets all the information about a property
     cursor.execute("SELECT * FROM Properties WHERE id=%s;", (property_id,))
     return cursor.fetchone()
