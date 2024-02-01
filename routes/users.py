@@ -72,3 +72,19 @@ async def update_user(user: User_Email_Password_Fields_Optional, request: Reques
 
     db.commit()
     return
+
+@router.delete("/")
+async def delete_user(request: Request, response: Response):
+    session_token = get_session_token_from_request(request)
+
+    if session_token == "":
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
+    # Deletes the data about the user from the SavedProperties and Users database
+    cursor.execute("DELETE FROM SavedProperties WHERE user_id=(SELECT id FROM Users WHERE session_token=%s);", (session_token,))
+    cursor.execute("DELETE FROM Users WHERE session_token=%s;", (session_token,))
+    db.commit()
+
+    response.delete_cookie(key="session_token")
+    return
