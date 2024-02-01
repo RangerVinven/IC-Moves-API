@@ -9,12 +9,12 @@ router = APIRouter()
 
 
 # For development only
-@router.get("/all")
-async def get_users():
-    cursor.execute("SELECT * FROM Users;")
-    users = cursor.fetchall()
-
-    return users
+# @router.get("/all")
+# async def get_users():
+#     cursor.execute("SELECT * FROM Users;")
+#     users = cursor.fetchall()
+#
+#     return users
 
 
 @router.get("/")
