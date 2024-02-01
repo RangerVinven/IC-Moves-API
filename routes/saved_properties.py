@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request, Response, status
-from fastapi.responses import RedirectResponse
 
 from utils.database_connector import cursor, db
 from utils.authentication import get_session_token_from_request
@@ -7,11 +6,12 @@ from utils.authentication import get_session_token_from_request
 router = APIRouter()
 
 @router.get("/")
-async def get_saved_properties(request: Request):
+async def get_saved_properties(request: Request, response: Response):
     session_token = get_session_token_from_request(request)
 
     if session_token == "":
-        return RedirectResponse(url="/")
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
 
     cursor.execute("SELECT sp.property_id FROM SavedProperties sp JOIN Users u ON u.id = sp.user_id WHERE u.session_token=%s", (session_token,))
     return cursor.fetchall()
