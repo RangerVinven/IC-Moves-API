@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Response, Request, status
 
 from utils.database_connector import cursor, db
-from utils.authentication import generate_session_token, get_session_token_from_request, sha256
+from utils.authentication import generate_session_token, get_session_token_from_request, sha256, check_if_email_is_unique
 
-from models.Users import User_Email_Password, User_Email_Password_Fields_Optional
+from models.Users import User_Email_Password_Verify_Password, User_Email_Password_Fields_Optional
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ router = APIRouter()
 # async def get_users():
 #     cursor.execute("SELECT * FROM Users;")
 #     users = cursor.fetchall()
-#
+
 #     return users
 
 
@@ -31,16 +31,25 @@ async def get_user(request: Request, response: Response):
 
 
 @router.post("/")
-async def create_user(user: User_Email_Password, response: Response):
+async def create_user(user: User_Email_Password_Verify_Password, response: Response):
     session_token = generate_session_token(user)
+
+    if user.password != user.verify_password:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+    
+    # Returns true if the email is unique
+    if not check_if_email_is_unique(user.email):
+        response.status_code = status.HTTP_409_CONFLICT
+        return
 
     cursor.execute("INSERT INTO Users (email, password, session_token) VALUES (%s, %s, %s);",
                    (user.email, sha256(user.password), session_token))
     db.commit()
 
-    response.set_cookie(key="session_token", value=session_token)
-    return
-
+    return {
+        "token": session_token
+    }
 
 @router.patch("/")
 async def update_user(user: User_Email_Password_Fields_Optional, request: Request, response: Response):
@@ -53,8 +62,12 @@ async def update_user(user: User_Email_Password_Fields_Optional, request: Reques
 
     # Ensures the user entered at least an email or password
     if user.email is None and user.password is None:
-        print("It's empty")
         response.status_code = status.HTTP_400_BAD_REQUEST
+        return
+    
+    # Returns true if the email is unique
+    if not check_if_email_is_unique(user.email):
+        response.status_code = status.HTTP_409_CONFLICT
         return
 
     # If the user wants to update their email
