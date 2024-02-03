@@ -23,15 +23,14 @@ async def login(credentials: User_Email_Password, response: Response):
 
     # Logs the user in
     session_token = generate_session_token(credentials)
-    print(session_token)
 
     cursor.execute("UPDATE Users SET session_token=%s WHERE email=%s AND password=%s",
                    (session_token, credentials.email, credentials.password))
     db.commit()
 
-    # Sets the Set-Cookie header in the response
-    response.set_cookie(key="session_token", value=session_token)
-    return
+    return {
+        "token": session_token
+    }
 
 @router.get("/logout")
 async def logout(request: Request, response: Response):
@@ -39,12 +38,12 @@ async def logout(request: Request, response: Response):
 
     # If the user isn't logged in (no session token), redirects to "/"
     if session_token == "":
-        return RedirectResponse(url="/")
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return
 
     # Removes the session token from the database
     cursor.execute("UPDATE Users SET session_token=null WHERE session_token=%s", (session_token,))
     db.commit()
 
     # Tells the browser to delete the session_token cookie
-    response.delete_cookie(key="session_token")
     return
