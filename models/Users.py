@@ -8,3 +8,8 @@ class User_Email_Password(BaseModel):
 class User_Email_Password_Fields_Optional(BaseModel):
     email: str | None = None
     password: str | None = None
+
+class User_Email_Password_Verify_Password(BaseModel):
+    email: str
+    password: str
+    verify_password: str
