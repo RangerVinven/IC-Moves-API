@@ -9,12 +9,12 @@ router = APIRouter()
 
 
 # For development only
-# @router.get("/all")
-# async def get_users():
-#     cursor.execute("SELECT * FROM Users;")
-#     users = cursor.fetchall()
+@router.get("/all")
+async def get_users():
+    cursor.execute("SELECT * FROM Users;")
+    users = cursor.fetchall()
 
-#     return users
+    return users
 
 
 @router.get("/")
@@ -26,7 +26,7 @@ async def get_user(request: Request, response: Response):
         response.status = status.HTTP_401_UNAUTHORIZED
         return
 
-    cursor.execute("SELECT email, password FROM Users WHERE session_token=%s;", (session_token,))
+    cursor.execute("SELECT email FROM Users WHERE session_token=%s;", (session_token,))
     return cursor.fetchone()
 
 
@@ -99,5 +99,4 @@ async def delete_user(request: Request, response: Response):
     cursor.execute("DELETE FROM Users WHERE session_token=%s;", (session_token,))
     db.commit()
 
-    response.delete_cookie(key="session_token")
     return
