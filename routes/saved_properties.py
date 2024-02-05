@@ -13,8 +13,30 @@ async def get_saved_properties(request: Request, response: Response):
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return
 
-    cursor.execute("SELECT sp.property_id FROM SavedProperties sp JOIN Users u ON u.id = sp.user_id WHERE u.session_token=%s", (session_token,))
-    return cursor.fetchall()
+    # Gets the property information of the saved images
+    cursor.execute("SELECT p.id, p.name, p.bedrooms, p.showers, p.noise_level, p.rent, p.folder FROM Properties p JOIN SavedProperties sp ON sp.property_id=p.id JOIN Users u ON sp.user_id = u.id WHERE u.session_token=%s ORDER BY id asc;", (session_token,))
+    properties = cursor.fetchall()
+    
+    if len(properties) == 0:
+        return []
+
+    # Gets the ids of the properties
+    property_ids = []
+    for property in properties:
+        property_ids.append(property["id"])
+
+    # Creates a list of %s,%s,%s... for the length of the properties
+    propertyId_placeholder = ",".join(["%s"] * len(properties))
+
+    # Finds the alt_description of the first image (1.jpg) for each of the saved properties
+    cursor.execute("SELECT property_id, alt_description FROM Images WHERE property_id IN ({}) AND image_number=1 ORDER BY property_id asc;".format(propertyId_placeholder), tuple(property_ids))
+    descriptions = cursor.fetchall()
+
+    # Adds the description to the properties array
+    for i in range(len(properties)):
+        properties[i]["alt_description"] = descriptions[i]
+
+    return properties
 
 @router.get("/{property_id}")
 async def save_property(property_id: str, request: Request, response: Response):
@@ -47,14 +69,29 @@ async def save_property(property_id: str, request: Request, response: Response):
 
     return
 
+@router.delete("/all")
+async def clear_saved(request: Request, response: Response):
+    session_token = get_session_token_from_request(request)
+
+    # Rejects the request if the user isn't logged in
+    if session_token == "":
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+    
+    cursor.execute("DELETE FROM SavedProperties WHERE user_id=(SELECT id FROM Users WHERE session_token=%s);", (session_token,))
+    db.commit()
+    return
+
+
 @router.delete("/{property_id}")
 async def unsave_property(property_id: str, request: Request, response: Response):
     session_token = get_session_token_from_request(request)
 
-    # Redirects if the user isn't logged in
+    # Rejects the request if the user isn't logged in
     if session_token == "":
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return
 
     cursor.execute("DELETE FROM SavedProperties WHERE user_id=(SELECT id FROM Users WHERE session_token=%s) AND property_id=%s", (session_token, property_id))
     return
+
