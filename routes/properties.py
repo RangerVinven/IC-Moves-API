@@ -7,8 +7,16 @@ router = APIRouter()
 
 @router.get("/")
 async def get_properties():
-    cursor.execute("SELECT id, name, bedrooms, showers, noise_level, rent, folder FROM Properties;")
-    return cursor.fetchall()
+    cursor.execute("SELECT id, name, bedrooms, showers, noise_level, rent, folder FROM Properties ORDER BY id asc;")
+    properties = cursor.fetchall()
+
+    cursor.execute("SELECT property_id, alt_description FROM Images WHERE image_number=1 ORDER BY property_id asc;")
+    images = cursor.fetchall()
+
+    for i in range(len(properties)):
+        properties[i]["alt_description"] = images[i]["alt_description"]
+
+    return properties
 
 @router.get("/{property_id}/is_saved")
 async def is_property_saved(property_id: str, request: Request, response: Response):
