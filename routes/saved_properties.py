@@ -29,12 +29,12 @@ async def get_saved_properties(request: Request, response: Response):
     propertyId_placeholder = ",".join(["%s"] * len(properties))
 
     # Finds the alt_description of the first image (1.jpg) for each of the saved properties
-    cursor.execute("SELECT property_id, alt_description FROM Images WHERE property_id IN ({}) AND image_number=1 ORDER BY property_id asc;".format(propertyId_placeholder), tuple(property_ids))
+    cursor.execute("SELECT alt_description FROM Images WHERE property_id IN ({}) AND image_number=1 ORDER BY property_id asc;".format(propertyId_placeholder), tuple(property_ids))
     descriptions = cursor.fetchall()
 
     # Adds the description to the properties array
     for i in range(len(properties)):
-        properties[i]["alt_description"] = descriptions[i]
+        properties[i]["alt_description"] = descriptions[i]["alt_description"]
 
     return properties
 
