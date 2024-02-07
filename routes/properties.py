@@ -7,7 +7,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_properties():
-    cursor.execute("SELECT id, name, bedrooms, showers, noise_level, rent, folder FROM Properties ORDER BY id asc;")
+    cursor.execute("SELECT * FROM Properties ORDER BY id asc;")
     properties = cursor.fetchall()
 
     cursor.execute("SELECT property_id, alt_description FROM Images WHERE image_number=1 ORDER BY property_id asc;")
