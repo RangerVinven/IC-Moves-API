@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Response, Request, status
 
 from utils.database_connector import cursor, db
-from utils.authentication import generate_session_token, get_session_token_from_request, sha256, check_if_email_is_unique
+from utils.authentication import generate_session_token, get_session_token_from_request, sha256, check_if_email_is_unique, validate_email
 
 from models.Users import User_Email_Password_Verify_Password, User_Email_Password_Fields_Optional
 
@@ -38,6 +38,10 @@ async def create_user(user: User_Email_Password_Verify_Password, response: Respo
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return
     
+    if not validate_email(user.email):
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return
+    
     # Returns true if the email is unique
     if not check_if_email_is_unique(user.email):
         response.status_code = status.HTTP_409_CONFLICT
@@ -64,6 +68,11 @@ async def update_user(user: User_Email_Password_Fields_Optional, request: Reques
     if user.email is None and user.password is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return
+    
+    if not (user.email is None):
+        if not validate_email(user.email):
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return
     
     # Returns true if the email is unique
     if not check_if_email_is_unique(user.email):
