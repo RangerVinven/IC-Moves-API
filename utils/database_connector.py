@@ -1,4 +1,8 @@
 import mysql.connector
+from time import sleep
 
-db = mysql.connector.connect(user="root", password="root", host="127.0.0.1", database="IC_Moves")
+print("Waiting to connect...")
+sleep(60)
+
+db = mysql.connector.connect(user="root", password="root", host="db", database="IC_Moves")
 cursor = db.cursor(dictionary=True)
