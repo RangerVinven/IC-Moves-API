@@ -10,7 +10,7 @@ from routes.saved_properties import router as saved_properties_router
 app = FastAPI()
 
 # Handles CORS
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # Adds the routes from the various files
 app.include_router(users_router, prefix="/users")
