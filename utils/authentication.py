@@ -1,5 +1,6 @@
 from time import time
 import hashlib
+import re
 
 from fastapi import Request
 from models.Users import User_Email_Password
@@ -19,7 +20,14 @@ def get_session_token_from_request(request: Request):
         return ""
     else:
         return session_token
-    
+
+def validate_email(email):
+    pattern = "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}"
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
+
 # Checks if the email doesn't exist in the database
 def check_if_email_is_unique(email):
     cursor.execute("SELECT id FROM Users WHERE email=%s;", (email,))
